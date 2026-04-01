@@ -28,16 +28,6 @@
         {% csrf_token %}
         {% if not '/delete/' in request.path %}
           {% bootstrap_form form %}
-          <div class="mb-3">
-            <small class="text-muted d-block mb-2">
-              Нет подходящего фото? 
-              <a href="{% url 'blog:generate_meme' %}" target="_blank" 
-                 class="text-decoration-none">
-                Создать изображение с помощью AI →
-              </a>
-            </small>
-          </div>
-          
         {% else %}
           <article>
             {% if form.instance.image %}
