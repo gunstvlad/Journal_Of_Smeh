@@ -14,7 +14,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 
 from adapters.post import PostModelAdapter
-from blog.models import Post
+from blogicum.blog.models import Post
 from conftest import (
     _TestModelAttrs,
     KeyVal,

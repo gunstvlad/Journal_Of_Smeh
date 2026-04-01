@@ -65,7 +65,7 @@ def test_custom_err_handlers(client, user_client):
         ), f"Убедитесь, что файл шаблона `{fpath}` существует."
 
     try:
-        from blogicum.urls import handler500
+        from blogicum.blog.urls import handler500
     except Exception:
         raise AssertionError(
             "Убедитесь, что в головном файле с маршрутами нет ошибок и что в"
@@ -90,7 +90,7 @@ def test_custom_err_handlers(client, user_client):
     )
 
     try:
-        from pages import views as pages_views
+        from blogicum.pages import views as pages_views
     except Exception:
         raise AssertionError("Убедитесь, что в файле `pages/views.py` нет ошибок.")
 

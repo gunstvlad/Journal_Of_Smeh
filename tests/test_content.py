@@ -226,7 +226,7 @@ class CategoryPostContentTester(PostContentTester):
     @property
     def page_url(self):
         if not self._page_url:
-            from blog.models import Category
+            from blogicum.blog.models import Category
 
             category = Category.objects.first()
             if category:

@@ -49,7 +49,7 @@ class PostModelAdapter(StudentModelAdapter):
 
     @property
     def ItemModel(self) -> Type[Model]:
-        from blog.models import Post
+        from blogicum.blog.models import Post
 
         return Post
 

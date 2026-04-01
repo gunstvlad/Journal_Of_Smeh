@@ -70,7 +70,7 @@ with SafeImportFromContextManager(
     "blog/models.py", ["Category", "Location", "Post"], import_of="моделей"
 ):
     try:
-        from blog.models import Category, Location, Post  # noqa:F401
+        from blogicum.blog.models import Category, Location, Post  # noqa:F401
     except RuntimeError:
         registered_apps = set(app.name for app in apps.get_app_configs())
         need_apps = {"blog": "blog", "pages": "pages"}
@@ -201,7 +201,7 @@ class _TestModelAttrs:
 @pytest.fixture
 def PostModel() -> Type[Model]:
     try:
-        from blog.models import Post
+        from blogicum.blog.models import Post
     except Exception as e:
         raise AssertionError(
             "При импорте модели `Post` из файла `models.py` возникла ошибка."
@@ -215,7 +215,7 @@ def PostModel() -> Type[Model]:
 @pytest.fixture
 def CommentModel() -> Model:
     try:
-        from blog import models
+        from blogicum.blog import models
     except Exception as e:
         raise AssertionError(
             "Убедитесь, что в файле `blog/models.py` нет ошибок. "

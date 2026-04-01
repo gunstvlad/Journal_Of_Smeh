@@ -19,7 +19,7 @@ class PostFormTester(BaseFormTester):
         image_data = BytesIO()
         Image.new("RGB", (100, 100)).save(image_data, "JPEG")
         image_data.seek(0)
-        from blog.models import Post
+        from blogicum.blog.models import Post
 
         files = {
             PostModelAdapter(Post).get_student_field_name("image"): SimpleUploadedFile(
@@ -35,7 +35,7 @@ class PostFormTester(BaseFormTester):
         image_data = BytesIO()
         Image.new("RGB", (100, 100)).save(image_data, "JPEG")
         image_data.seek(0)
-        from blog.models import Post
+        from blogicum.blog.models import Post
 
         files = {
             PostModelAdapter(Post).get_student_field_name("image"): SimpleUploadedFile(
