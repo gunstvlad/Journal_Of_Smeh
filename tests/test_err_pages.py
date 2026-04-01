@@ -1,8 +1,7 @@
 import importlib
 import inspect
-import os
 import uuid
-from importlib import import_module
+from pathlib import Path
 
 import pytest
 from django.conf import settings
@@ -10,18 +9,23 @@ from django.http import HttpRequest
 from pytest_django.asserts import assertTemplateUsed
 
 
-def test_csrf_failure_view():
-    csrf_failure_view_setting = getattr(settings, "CSRF_FAILURE_VIEW", "")
-    module_name, function_name = csrf_failure_view_setting.rsplit(".", 1)
-    csrf_failure_view = None
+def _get_callable_from_path(dotted_path: str):
+    """Вспомогательная функция: импортирует объект по строке вида 'module.func'."""
     try:
-        module = import_module(module_name)
-        csrf_failure_view = getattr(module, function_name, None)
-    except Exception:
-        pass
-    assert csrf_failure_view, (
-        "Убедитесь, что в `settings.py` задана настройка `CSRF_FAILURE_VIEW` и"
-        " что она указывает на существующую view-функцию."
+        module_name, func_name = dotted_path.rsplit(".", 1)
+        module = importlib.import_module(module_name)
+        return getattr(module, func_name)
+    except (ImportError, AttributeError, ValueError):
+        return None
+
+
+def test_csrf_failure_view():
+    csrf_failure_view_path = getattr(settings, "CSRF_FAILURE_VIEW", "")
+    csrf_failure_view = _get_callable_from_path(csrf_failure_view_path)
+
+    assert csrf_failure_view is not None, (
+        "Убедитесь, что в `settings.py` задана настройка `CSRF_FAILURE_VIEW` и "
+        "что она указывает на существующую view-функцию."
     )
 
     request = HttpRequest()
@@ -30,93 +34,80 @@ def test_csrf_failure_view():
 
     try:
         response = csrf_failure_view(request)
-    except Exception:
+    except Exception as exc:
         raise AssertionError(
-            f"Убедитесь, что view-функция `{csrf_failure_view_setting}`"
-            " работает без ошибок."
-        )
-    else:
-        csrf_status = 403
-        assert response.status_code == csrf_status, (
-            f"Убедитесь, что view-функция `{csrf_failure_view_setting}`"
-            f" возвращает статус {csrf_status}."
-        )
+            f"Убедитесь, что view-функция `{csrf_failure_view_path}` работает без ошибок."
+        ) from exc
+
+    assert response.status_code == 403, (
+        f"Убедитесь, что view-функция `{csrf_failure_view_path}` возвращает статус 403."
+    )
 
 
 @pytest.mark.django_db
 def test_custom_err_handlers(client, user_client):
-    err_pages_vs_file_names = {
+    err_pages = {
         404: "404.html",
         403: "403csrf.html",
         500: "500.html",
     }
-    for status, fname in err_pages_vs_file_names.items():
-        try:
-            fpath = settings.TEMPLATES_DIR / "pages" / fname
-        except Exception as e:
-            raise AssertionError(
-                "Убедитесь, что переменная TEMPLATES_DIR в настройках проекта "
-                "является строкой (str) или объектом, соответствующим path-like интерфейсу "
-                "(например, экземпляром pathlib.Path). "
-                f'При операции конкатенации settings.TEMPLATES_DIR / "pages", возникла ошибка: {e}'
-            )
-        assert os.path.isfile(
-            fpath.resolve()
-        ), f"Убедитесь, что файл шаблона `{fpath}` существует."
 
-    try:
-        from blogicum.blog.urls import handler500
-    except Exception:
-        raise AssertionError(
-            "Убедитесь, что в головном файле с маршрутами нет ошибок и что в"
-            " нём задан обработчик ошибки 500."
+    # Безопасное получение пути к шаблонам (работает и со str, и с pathlib.Path)
+    templates_dir = getattr(settings, "TEMPLATES_DIR", None)
+    assert templates_dir is not None, (
+        "Убедитесь, что переменная TEMPLATES_DIR задана в настройках проекта."
+    )
+    pages_dir = Path(templates_dir) / "pages"
+
+    # Проверка существования файлов шаблонов
+    for _, fname in err_pages.items():
+        fpath = pages_dir / fname
+        assert fpath.is_file(), (
+            f"Убедитесь, что файл шаблона `{fpath}` существует."
         )
 
-    def check_handler_exists(handler_path):
-        module_name, func_name = handler_path.rsplit(".", 1)
-        try:
-            module = importlib.import_module(module_name)
-        except ImportError:
-            return False
-        try:
-            getattr(module, func_name)
-        except AttributeError:
-            return False
-        return True
+    # Проверка handler500
+    try:
+        from blogicum.blog.urls import handler500
+        handler500_path = handler500
+    except Exception:
+        raise AssertionError(
+            "Убедитесь, что в головном файле с маршрутами нет ошибок и что в "
+            "нём задан обработчик ошибки 500."
+        )
 
-    assert check_handler_exists(handler500), (
+    assert _get_callable_from_path(handler500_path) is not None, (
         "Убедитесь, что обработчик ошибки 500 в головном файле с маршрутами "
         "указывает на существующую функцию."
     )
 
+    # Проверка исходного кода pages/views.py
     try:
         from blogicum.pages import views as pages_views
     except Exception:
         raise AssertionError("Убедитесь, что в файле `pages/views.py` нет ошибок.")
 
-    for status, fname in err_pages_vs_file_names.items():
-        assert fname in inspect.getsource(pages_views), (
-            "Проверьте view-функции приложения `pages`: убедитесь, что для"
-            " генерации страниц со статусом ответа `{status}` используется"
-            " шаблон `pages/{fname}`"
+    source_code = inspect.getsource(pages_views)
+    for status, fname in err_pages.items():
+        # 🔍 ИСПРАВЛЕНИЕ: в оригинале отсутствовал префикс f, из-за чего {status} и {fname} 
+        # выводились как текст. Добавлен f для корректной интерполяции.
+        assert fname in source_code, (
+            f"Проверьте view-функции приложения `pages`: убедитесь, что для "
+            f"генерации страниц со статусом ответа `{status}` используется "
+            f"шаблон `pages/{fname}`"
         )
 
-    # test template for 404
-    debug = settings.DEBUG
+    # Проверка рендеринга 404 шаблона
+    original_debug = settings.DEBUG
     settings.DEBUG = False
-
-    status = 404
-    fname = err_pages_vs_file_names[status]
-    non_existing_url = uuid.uuid4()
-    expected_template = f"pages/{fname}"
-    response = client.get(non_existing_url)
-    assertTemplateUsed(
-        response,
-        expected_template,
-        (
-            f"Убедитесь, что для страниц со статусом ответа `{status}`"
-            f" используется шаблон `{expected_template}`"
-        ),
-    )
-
-    settings.DEBUG = debug
+    try:
+        # uuid.uuid4() возвращает объект, приводим к str для безопасности client.get()
+        non_existing_url = str(uuid.uuid4())
+        response = client.get(non_existing_url)
+        assertTemplateUsed(
+            response,
+            "pages/404.html",
+            "Убедитесь, что для страниц со статусом ответа `404` используется шаблон `pages/404.html`",
+        )
+    finally:
+        settings.DEBUG = original_debug
