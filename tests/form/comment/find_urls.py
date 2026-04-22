@@ -59,9 +59,6 @@ def find_edit_and_delete_urls(
             f" {urls_start_with.key}"
         )
 
-    # We have two links. Which one of them is the edit link,
-    # and which - the delete link? Edit link must lead to a form.
-
     edit_link, del_link = comment_links[0], comment_links[1]
 
     def assert_comment_links_return_same_get_status(_comment_links):
