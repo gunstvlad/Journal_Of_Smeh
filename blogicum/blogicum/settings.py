@@ -33,7 +33,6 @@ ALLOWED_HOSTS = [
     'www.GrishaSilantev.pythonanywhere.com',
     'GrishaSilantev.pythonanywhere.com',
 ]
-TIME_ZONE = 'Russia/Moscow'
 
 # Application definition
 
@@ -57,10 +56,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
-
-INTERNAL_IPS = [
-    '127.0.0.1',
 ]
 
 ROOT_URLCONF = 'blogicum.urls'
@@ -121,11 +116,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'ru-RU'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
-
-USE_L10N = True
 
 USE_TZ = True
 
@@ -149,5 +142,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'
 
 MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = "/media/"
+
+
 
 PAGINATION_AMOUNT = 10
