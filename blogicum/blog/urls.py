@@ -20,4 +20,6 @@ urlpatterns = [
          views.edit_comment, name='edit_comment'),
     path('posts/<int:post_id>/delete_comment/<int:comment_id>/',
          views.delete_comment, name='delete_comment'),
+    path('meme/create/', views.generate_meme, name='generate_meme'),
+    path('meme/gallery/', views.meme_gallery, name='meme_gallery'),
 ]
