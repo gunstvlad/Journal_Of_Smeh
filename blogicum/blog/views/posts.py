@@ -2,9 +2,10 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required
 
 from ..models import Post, Category
-from ..forms import PostForm
+from ..forms import PostForm, CommentForm
+from django.db.models import Count, Q
 from ..additional_functions import get_posts, pagination
-
+from django.utils import timezone
 
 def index(request):
     """Главная страница блога"""
@@ -16,20 +17,23 @@ def index(request):
 
 
 def post_detail(request, post_id):
-    """Детальная страница поста"""
     template_name = "blog/detail.html"
-    post = get_object_or_404(get_posts(False, True), pk=post_id)
 
-    # Если пользователь не автор, показываем только опубликованные
-    if post.author != request.user:
-        post = get_object_or_404(get_posts(True, True), pk=post_id)
-
+    if request.user.is_authenticated:
+        post = get_object_or_404(
+            Post.objects.select_related("category", "author", "location").annotate(comment_count=Count("comments")),
+            Q(pk=post_id, author=request.user) | 
+            Q(pk=post_id, is_published=True, category__is_published=True, pub_date__lte=timezone.now())  # Чужие опубликованные
+        )
+    else:
+        post = get_object_or_404(
+            get_posts(apply_filters=True, comment_count=True),
+            pk=post_id
+        )
+    
     comments = post.comments.all()
-    # Форму комментария создаём здесь, так как она используется в шаблоне поста
-    from blog.forms import CommentForm
-
     form = CommentForm()
-
+    
     context = {"post": post, "form": form, "comments": comments}
     return render(request, template_name, context)
 
