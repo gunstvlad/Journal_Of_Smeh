@@ -11,6 +11,10 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -144,6 +148,8 @@ EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = "/media/"
 
-
+NANOBANANA_API_KEY = os.getenv('NANOBANANA_API_KEY', '')
+NANOBANANA_BASE_URL = os.getenv('NANOBANANA_BASE_URL', 'https://api.zveno.ai/v1')
+NANOBANANA_MODEL = os.getenv('NANOBANANA_MODEL', 'google/gemini-3.1-flash-image-preview')
 
 PAGINATION_AMOUNT = 10
