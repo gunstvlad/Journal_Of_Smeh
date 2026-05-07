@@ -22,4 +22,5 @@ urlpatterns = [
          views.delete_comment, name='delete_comment'),
     path('meme/create/', views.generate_meme, name='generate_meme'),
     path('meme/gallery/', views.meme_gallery, name='meme_gallery'),
+    path('meme/save-as-post/', views.save_meme_as_post, name='save_meme_as_post'),
 ]

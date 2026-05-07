@@ -4,20 +4,29 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.files.base import ContentFile
+from django.utils import timezone
 
 from blog.models import Post
 from blog.nanobanana_api import NanoBananaAPI
 
-
+from django.conf import settings
+    
 @login_required
 def generate_meme(request):
+    """Генератор мемов через NanoBanana (Gemini 3 Pro)"""
+    print("\n" + "="*70)
+    print("🔍 DJANGO SETTINGS DEBUG:")
+    print(f"  - NANOBANANA_API_KEY: {settings.NANOBANANA_API_KEY[:20] if settings.NANOBANANA_API_KEY else 'EMPTY'}...")
+    print(f"  - NANOBANANA_BASE_URL: {settings.NANOBANANA_BASE_URL}")
+    print(f"  - NANOBANANA_MODEL: {settings.NANOBANANA_MODEL}")
+    print(f"  - .env loaded: {bool(settings.NANOBANANA_API_KEY)}")
+    print("="*70 + "\n")
     if request.method == 'POST':
         joke_description = request.POST.get('joke_description', '').strip()
         text_top = request.POST.get('text_top', '').strip()
         text_bottom = request.POST.get('text_bottom', '').strip()
-        aspect_ratio = request.POST.get('aspect_ratio', '1:1')
-        save_as_post = request.POST.get('save_as_post')
         
+        # Валидация
         if not joke_description:
             messages.error(request, 'Опиши свою шутку или идею мема!')
             return render(request, 'blog/meme_generator.html', {
@@ -32,35 +41,28 @@ def generate_meme(request):
             
             if text_top or text_bottom:
                 prompt += f". Добавь текст: сверху '{text_top}', снизу '{text_bottom}'"
-
-            prompt += ". Стиль: интернет-мем, ярко, юмористично, высокое качество"
-            result = api.generate_image(
-                prompt=prompt,
-                aspect_ratio=aspect_ratio
-            )
             
+            prompt += ". Стиль: интернет-мем, ярко, юмористично, высокое качество"
+            
+            result = api.generate_image(prompt=prompt)
             image_data = api.download_image(result['image_url'])
             filename = f'meme_{request.user.id}_{uuid.uuid4().hex[:8]}.png'
             
-            if save_as_post:
-                post = Post(
-                    title=f'{joke_description[:50]}',
-                    text=f'Сгенерировано по шутке: {joke_description}\n\n промпт: {result["revised_prompt"]}',
-                    author=request.user,
-                    is_published=True,
-                )
-                post.image.save(filename, ContentFile(image_data), save=True)
-                messages.success(request, 'Мем сгенерирован и опубликован!')
-                return redirect('blog:post_detail', post_id=post.id)
-            else:
-                messages.success(request, 'Мем сгенерирован!')
-                return render(request, 'blog/meme_result.html', {
-                    'image_url': result['image_url'],
-                    'image_data': image_data,
-                    'joke_description': joke_description,
-                    'revised_prompt': result['revised_prompt'],
-                })
-        
+            # 🔹 НОВОЕ: Кодируем в base64 для шаблона
+            import base64
+            image_base64 = base64.b64encode(image_data).decode('utf-8')
+            
+            messages.success(request, 'Мем сгенерирован!')
+            return render(request, 'blog/meme_result.html', {
+                'image_base64': image_base64,  # ← Base64 строка
+                'image_data': image_data,       # ← Бинарные данные (для формы)
+                'filename': filename,
+                'joke_description': joke_description,
+                'text_top': text_top,
+                'text_bottom': text_bottom,
+                'revised_prompt': result.get('revised_prompt', prompt),
+            })
+            
         except Exception as e:
             error_msg = str(e)
             if 'API key' in error_msg or 'authentication' in error_msg.lower():
@@ -79,6 +81,52 @@ def generate_meme(request):
             })
     
     return render(request, 'blog/meme_generator.html')
+
+
+@login_required
+def save_meme_as_post(request):
+    if request.method != 'POST':
+        return redirect('blog:generate_meme')
+    
+    try:
+        image_data = request.POST.get('image_data')
+        filename = request.POST.get('filename')
+        joke_description = request.POST.get('joke_description', 'AI Мем')
+        text_top = request.POST.get('text_top', '')
+        text_bottom = request.POST.get('text_bottom', '')
+        revised_prompt = request.POST.get('revised_prompt', '')
+        
+        if not image_data:
+            messages.error(request, 'Нет изображения для сохранения')
+            return redirect('blog:generate_meme')
+        
+        # Декодируем base64
+        from base64 import b64decode
+        image_file = ContentFile(b64decode(image_data), name=filename)
+        
+        # Создаём пост
+        title = joke_description[:50]
+        text = f'Сгенерировано по шутке: {joke_description}'
+        if text_top or text_bottom:
+            text += f'\n\nТекст на меме: "{text_top}" / "{text_bottom}"'
+        if revised_prompt:
+            text += f'\n\nAI промпт: {revised_prompt}'
+        
+        post = Post(
+            title=title,
+            text=text,
+            author=request.user,
+            is_published=True,
+            pub_date=timezone.now(),
+        )
+        post.image.save(filename, image_file, save=True)
+        
+        messages.success(request, 'Мем опубликован в блоге!')
+        return redirect('blog:post_detail', post_id=post.id)
+        
+    except Exception as e:
+        messages.error(request, f'Ошибка сохранения: {str(e)}')
+        return redirect('blog:generate_meme')
 
 
 @login_required
