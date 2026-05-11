@@ -55,9 +55,9 @@ def test_custom_err_handlers(client, user_client):
             fpath = settings.TEMPLATES_DIR / "pages" / fname
         except Exception as e:
             raise AssertionError(
-                'Убедитесь, что переменная TEMPLATES_DIR в настройках проекта '
-                'является строкой (str) или объектом, соответствующим path-like интерфейсу '
-                '(например, экземпляром pathlib.Path). '
+                "Убедитесь, что переменная TEMPLATES_DIR в настройках проекта "
+                "является строкой (str) или объектом, соответствующим path-like интерфейсу "
+                "(например, экземпляром pathlib.Path). "
                 f'При операции конкатенации settings.TEMPLATES_DIR / "pages", возникла ошибка: {e}'
             )
         assert os.path.isfile(
@@ -73,7 +73,7 @@ def test_custom_err_handlers(client, user_client):
         )
 
     def check_handler_exists(handler_path):
-        module_name, func_name = handler_path.rsplit('.', 1)
+        module_name, func_name = handler_path.rsplit(".", 1)
         try:
             module = importlib.import_module(module_name)
         except ImportError:
@@ -85,16 +85,14 @@ def test_custom_err_handlers(client, user_client):
         return True
 
     assert check_handler_exists(handler500), (
-        'Убедитесь, что обработчик ошибки 500 в головном файле с маршрутами '
-        'указывает на существующую функцию.'
+        "Убедитесь, что обработчик ошибки 500 в головном файле с маршрутами "
+        "указывает на существующую функцию."
     )
 
     try:
         from pages import views as pages_views
     except Exception:
-        raise AssertionError(
-            "Убедитесь, что в файле `pages/views.py` нет ошибок."
-        )
+        raise AssertionError("Убедитесь, что в файле `pages/views.py` нет ошибок.")
 
     for status, fname in err_pages_vs_file_names.items():
         assert fname in inspect.getsource(pages_views), (

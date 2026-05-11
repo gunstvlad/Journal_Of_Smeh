@@ -16,20 +16,20 @@ def add_comment(request, post_id):
         comment.author = request.user
         comment.post = post
         comment.save()
-    return redirect('blog:post_detail', post_id=post_id)
+    return redirect("blog:post_detail", post_id=post_id)
 
 
 @login_required
 def edit_comment(request, post_id=None, comment_id=None):
     """Редактирование комментария"""
-    template_name = 'blog/comment.html'
+    template_name = "blog/comment.html"
     post = get_object_or_404(get_posts(True), pk=post_id)
 
     comment = get_object_or_404(
-        Comments.objects.select_related('author'), 
+        Comments.objects.select_related("author"),
         id=comment_id,
-        author__username=request.user, 
-        post__id=post_id
+        author__username=request.user,
+        post__id=post_id,
     )
 
     form = CommentForm(request.POST or None, instance=comment)
@@ -38,27 +38,27 @@ def edit_comment(request, post_id=None, comment_id=None):
         comment.author = request.user
         comment.post = post
         comment.save()
-        return redirect('blog:post_detail', post_id=post_id)
-    
-    context = {'form': form, 'comment': comment}
+        return redirect("blog:post_detail", post_id=post_id)
+
+    context = {"form": form, "comment": comment}
     return render(request, template_name, context)
 
 
 @login_required
 def delete_comment(request, post_id=None, comment_id=None):
     """Удаление комментария"""
-    template_name = 'blog/comment.html'
+    template_name = "blog/comment.html"
 
     comment = get_object_or_404(
-        Comments.objects.select_related('author'),
-        id=comment_id, 
-        post__id=post_id, 
-        author__username=request.user
+        Comments.objects.select_related("author"),
+        id=comment_id,
+        post__id=post_id,
+        author__username=request.user,
     )
 
     if request.method == "POST":
         comment.delete()
-        return redirect('blog:post_detail', post_id=post_id)
-    
-    context = {'comment': comment}
+        return redirect("blog:post_detail", post_id=post_id)
+
+    context = {"comment": comment}
     return render(request, template_name, context)

@@ -104,8 +104,7 @@ class BaseFormTester(BaseTester):
 
     @property
     @abstractmethod
-    def has_textarea(self):
-        ...
+    def has_textarea(self): ...
 
     @property
     def unauthorized_edit_redirect_cbk(self):
@@ -200,9 +199,7 @@ class BaseFormTester(BaseTester):
 
         restored_data = restore_cleaned_data(form.cleaned_data)
         try:
-            response = submitter.test_submit(
-                url=self._action, data=restored_data
-            )
+            response = submitter.test_submit(url=self._action, data=restored_data)
         except Exception as e:
             raise FormValidationException(e) from e
 
@@ -237,15 +234,11 @@ class BaseFormTester(BaseTester):
             adapted_form_data = {}
             for k, v in unadapted_form_data.items():
                 adapted_form_data[getattr(model_adapter, k).field.name] = v
-            creation_forms.append(
-                self.init_create_item_form(Form, **adapted_form_data)
-            )
+            creation_forms.append(self.init_create_item_form(Form, **adapted_form_data))
 
         return creation_forms
 
-    def test_unlogged_cannot_create(
-        self, form: BaseForm, qs: QuerySet
-    ) -> None:
+    def test_unlogged_cannot_create(self, form: BaseForm, qs: QuerySet) -> None:
         self.test_create_item(
             form,
             qs,
@@ -270,13 +263,10 @@ class BaseFormTester(BaseTester):
                 for k in form.data.keys()
             ]
             student_form_fields_str = ", ".join(student_form_fields)
-            raise AssertionError(
-                self.validation_error_message(student_form_fields_str)
-            )
+            raise AssertionError(self.validation_error_message(student_form_fields_str))
         if assert_created:
             assert (
-                self._ModelAdapter(created).author
-                == response.wsgi_request.user
+                self._ModelAdapter(created).author == response.wsgi_request.user
             ), self.author_assignment_error_message
             content = response.content.decode(encoding="utf8")
             if self._ModelAdapter(created).text in content:
@@ -297,9 +287,7 @@ class BaseFormTester(BaseTester):
                     AuthorisedSubmitTester(
                         self,
                         test_response_cbk=(
-                            AuthorisedSubmitTester.get_test_response_ok_cbk(
-                                tester=self
-                            )
+                            AuthorisedSubmitTester.get_test_response_ok_cbk(tester=self)
                         ),
                     ),
                     assert_created=True,
@@ -309,8 +297,7 @@ class BaseFormTester(BaseTester):
 
             created_items.append(created)
             assert (
-                self._ModelAdapter(created).author
-                == response.wsgi_request.user
+                self._ModelAdapter(created).author == response.wsgi_request.user
             ), self.wrong_author_assertion_msg
 
         # noinspection PyUnboundLocalVariable
@@ -334,8 +321,7 @@ class BaseFormTester(BaseTester):
 
         # replace related objects with their ids for future validation
         form_data = {
-            k: v.id if isinstance(v, Model) else v
-            for k, v in form_data.items()
+            k: v.id if isinstance(v, Model) else v for k, v in form_data.items()
         }
 
         if file_data:
@@ -349,9 +335,7 @@ class BaseFormTester(BaseTester):
     def creation_assertion_msg(self, prop):
         pass
 
-    def test_creation_response(
-        self, content: str, created_items: Iterable[Model]
-    ):
+    def test_creation_response(self, content: str, created_items: Iterable[Model]):
         for item in created_items:
             item_adapter = self._ModelAdapter(item)
             prop = item_adapter.item_cls_adapter.displayed_field_name_or_value
@@ -397,9 +381,7 @@ class BaseFormTester(BaseTester):
             submitter=AuthorisedSubmitTester(
                 tester=self,
                 test_response_cbk=(
-                    AuthorisedSubmitTester.get_test_response_ok_cbk(
-                        tester=self
-                    )
+                    AuthorisedSubmitTester.get_test_response_ok_cbk(tester=self)
                 ),
             ),
             item_adapter=item_adapter,
@@ -424,9 +406,7 @@ class BaseFormTester(BaseTester):
         if not client:
             return None, None
         disp_old_value = item_adapter.displayed_field_name_or_value
-        response = submitter.test_submit(
-            url=self._action, data=updated_form.data
-        )
+        response = submitter.test_submit(url=self._action, data=updated_form.data)
         item_adapter.refresh_from_db()
         disp_new_value = item_adapter.displayed_field_name_or_value
         return disp_new_value != disp_old_value, response
@@ -460,9 +440,7 @@ class SubmitTester(ABC):
     ):
         if assert_status_in and response.status_code not in assert_status_in:
             raise AssertionError(err_msg)
-        if assert_status_not_in and (
-            response.status_code in assert_status_not_in
-        ):
+        if assert_status_not_in and (response.status_code in assert_status_not_in):
             raise AssertionError(err_msg)
         if assert_redirect is not None and assert_redirect:
             assert hasattr(response, "redirect_chain") and getattr(
@@ -495,9 +473,7 @@ class SubmitTester(ABC):
         )
 
     @staticmethod
-    def get_test_response_ok_cbk(
-        tester: BaseTester, by_user: Optional[str] = None
-    ):
+    def get_test_response_ok_cbk(tester: BaseTester, by_user: Optional[str] = None):
         by_user = by_user or "авторизованным пользователем"
         return partial(
             SubmitTester.test_response_cbk,
@@ -536,9 +512,7 @@ class AuthorisedSubmitTester(SubmitTester):
         )
 
     @staticmethod
-    def get_test_response_ok_cbk(
-        tester: BaseTester, by_user: Optional[str] = None
-    ):
+    def get_test_response_ok_cbk(tester: BaseTester, by_user: Optional[str] = None):
         return SubmitTester.get_test_response_ok_cbk(
             tester=tester, by_user=by_user or "авторизованным пользователем"
         )

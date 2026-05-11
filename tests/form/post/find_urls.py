@@ -35,9 +35,7 @@ def find_edit_and_delete_urls(
     # Get info about html between two consecutive posts
     displayed_post_text = post_adapter.displayed_field_name_or_value
     displayed_comment_text = comment_adapter.displayed_field_name_or_value
-    pattern = re.compile(
-        rf"{displayed_post_text}([\w\W]*?){displayed_comment_text}"
-    )
+    pattern = re.compile(rf"{displayed_post_text}([\w\W]*?){displayed_comment_text}")
     between_posts_match = pattern.search(post_page_content)
     assert between_posts_match, links_not_found_err_msg
     text_between_posts = between_posts_match.group(1)

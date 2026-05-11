@@ -61,9 +61,7 @@ class DeleteTester(BaseTester):
             )
         return redirect_to_page_repr
 
-    def test_delete_item(
-        self, qs: QuerySet, delete_url_addr: str
-    ) -> HttpResponse:
+    def test_delete_item(self, qs: QuerySet, delete_url_addr: str) -> HttpResponse:
         instances_before: Set[Model] = set(qs.all())
 
         can_delete, response = self.user_can_delete(
@@ -86,9 +84,7 @@ class DeleteTester(BaseTester):
             AuthorisedSubmitTester(
                 tester=self,
                 test_response_cbk=(
-                    AuthorisedSubmitTester.get_test_response_ok_cbk(
-                        tester=self
-                    )
+                    AuthorisedSubmitTester.get_test_response_ok_cbk(tester=self)
                 ),
             ),
             delete_url_addr,

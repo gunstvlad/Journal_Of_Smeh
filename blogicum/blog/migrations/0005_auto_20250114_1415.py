@@ -1,5 +1,3 @@
-
-
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
@@ -9,36 +7,63 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('blog', '0004_comments'),
+        ("blog", "0004_comments"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='comments',
-            options={'default_related_name': 'comments', 'ordering': ('created_at',), 'verbose_name': 'комментарий', 'verbose_name_plural': 'комментарии'},
+            name="comments",
+            options={
+                "default_related_name": "comments",
+                "ordering": ("created_at",),
+                "verbose_name": "комментарий",
+                "verbose_name_plural": "комментарии",
+            },
         ),
         migrations.AlterModelOptions(
-            name='post',
-            options={'default_related_name': 'posts', 'ordering': ('-pub_date',), 'verbose_name': 'публикация', 'verbose_name_plural': 'Публикации'},
+            name="post",
+            options={
+                "default_related_name": "posts",
+                "ordering": ("-pub_date",),
+                "verbose_name": "публикация",
+                "verbose_name_plural": "Публикации",
+            },
         ),
         migrations.AlterField(
-            model_name='comments',
-            name='author',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comments', to=settings.AUTH_USER_MODEL, verbose_name='Автор'),
+            model_name="comments",
+            name="author",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="comments",
+                to=settings.AUTH_USER_MODEL,
+                verbose_name="Автор",
+            ),
         ),
         migrations.AlterField(
-            model_name='comments',
-            name='created_at',
-            field=models.DateTimeField(auto_now_add=True, verbose_name='Когда создано'),
+            model_name="comments",
+            name="created_at",
+            field=models.DateTimeField(auto_now_add=True, verbose_name="Когда создано"),
         ),
         migrations.AlterField(
-            model_name='comments',
-            name='post',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comments', to='blog.post', verbose_name='Пост'),
+            model_name="comments",
+            name="post",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="comments",
+                to="blog.post",
+                verbose_name="Пост",
+            ),
         ),
         migrations.AlterField(
-            model_name='post',
-            name='location',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='posts', to='blog.location', verbose_name='Местоположение'),
+            model_name="post",
+            name="location",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="posts",
+                to="blog.location",
+                verbose_name="Местоположение",
+            ),
         ),
     ]

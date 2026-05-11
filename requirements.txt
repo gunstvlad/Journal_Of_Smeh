@@ -26,4 +26,4 @@ yapf==0.32.0
 beautifulsoup4==4.11.2
 dotenv
 requests
-openai
+black == 23.3.0

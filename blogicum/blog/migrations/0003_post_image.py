@@ -1,18 +1,16 @@
-
-
 from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('blog', '0002_auto_20250101_2026'),
+        ("blog", "0002_auto_20250101_2026"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='post',
-            name='image',
-            field=models.ImageField(blank=True, upload_to='', verbose_name='Фото'),
+            model_name="post",
+            name="image",
+            field=models.ImageField(blank=True, upload_to="", verbose_name="Фото"),
         ),
     ]

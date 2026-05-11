@@ -52,8 +52,7 @@ class ContentTester(ABC):
     @abstractmethod
     def items_hardcoded_key(self):
         raise NotImplementedError(
-            "Override `items_hardcoded_key` property "
-            "in ContentTester`s child class"
+            "Override `items_hardcoded_key` property " "in ContentTester`s child class"
         )
 
     @abstractmethod
@@ -64,21 +63,15 @@ class ContentTester(ABC):
         self,
         url: Optional[str] = None,
         assert_status_in: Tuple[int] = (200,),
-        assert_cbk: Union[
-            Callable[[], None], str
-        ] = "raise_assert_page_loads_cbk",
+        assert_cbk: Union[Callable[[], None], str] = "raise_assert_page_loads_cbk",
     ) -> HttpResponse:
-        return self._testget(
-            self.user_client, url, assert_status_in, assert_cbk
-        )
+        return self._testget(self.user_client, url, assert_status_in, assert_cbk)
 
     def another_client_testget(
         self,
         url: Optional[str] = None,
         assert_status_in: Tuple[int] = (200,),
-        assert_cbk: Union[
-            Callable[[], None], str
-        ] = "raise_assert_page_loads_cbk",
+        assert_cbk: Union[Callable[[], None], str] = "raise_assert_page_loads_cbk",
     ) -> HttpResponse:
         return self._testget(
             self.another_user_client, url, assert_status_in, assert_cbk
@@ -89,9 +82,7 @@ class ContentTester(ABC):
         client,
         url: Optional[str] = None,
         assert_status_in: Tuple[int] = (200,),
-        assert_cbk: Union[
-            Callable[[], None], str
-        ] = "raise_assert_page_loads_cbk",
+        assert_cbk: Union[Callable[[], None], str] = "raise_assert_page_loads_cbk",
     ) -> HttpResponse:
         url = url or self.page_url.url
         try:
@@ -122,12 +113,8 @@ class ContentTester(ABC):
             return self._items_key
 
         def setup_for_url(setup_items: List[Model]) -> UrlRepr:
-            temp_category = self._mixer.blend(
-                "blog.Category", is_published=True
-            )
-            temp_location = self._mixer.blend(
-                "blog.Location", is_published=True
-            )
+            temp_category = self._mixer.blend("blog.Category", is_published=True)
+            temp_location = self._mixer.blend("blog.Location", is_published=True)
             temp_post = self._mixer.blend(
                 "blog.Post",
                 is_published=True,
@@ -225,9 +212,7 @@ class MainPostContentTester(PostContentTester):
         )
 
     def raise_assert_page_loads_cbk(self):
-        raise AssertionError(
-            "Убедитесь, что главная страница загружается без ошибок."
-        )
+        raise AssertionError("Убедитесь, что главная страница загружается без ошибок.")
 
     @property
     def image_display_error(self) -> str:
@@ -319,9 +304,7 @@ def category_content_tester(
     another_user_client: Client,
     unlogged_client: Client,
 ) -> CategoryPostContentTester:
-    return CategoryPostContentTester(
-        mixer, PostModel, PostModelAdapter, user_client
-    )
+    return CategoryPostContentTester(mixer, PostModel, PostModelAdapter, user_client)
 
 
 class TestContent:
@@ -338,9 +321,7 @@ class TestContent:
 
     def test_unpublished(self, unpublished_posts_with_published_locations):
         profile_response = self.profile_tester.user_client_testget()
-        context_posts = profile_response.context.get(
-            self.profile_tester.items_key
-        )
+        context_posts = profile_response.context.get(self.profile_tester.items_key)
         expected_n = self.profile_tester.n_or_page_size(
             len(unpublished_posts_with_published_locations)
         )
@@ -374,8 +355,7 @@ class TestContent:
             )
 
     def test_only_own_pubs_in_category(
-        self, user_client, post_with_published_location,
-            post_with_another_category
+        self, user_client, post_with_published_location, post_with_another_category
     ):
         response = self.category_tester.user_client_testget()
         try:
@@ -384,14 +364,13 @@ class TestContent:
             pass
         else:
             context_posts = response.context.get(items_key)
-            assert (
-                len(context_posts) == 1
-            ), ("Убедитесь, что на странице категории "
-                "не отображаются публикации других категорий.")
+            assert len(context_posts) == 1, (
+                "Убедитесь, что на странице категории "
+                "не отображаются публикации других категорий."
+            )
 
     def test_only_own_pubs_in_profile(
-            self, user_client, post_with_published_location,
-            post_of_another_author
+        self, user_client, post_with_published_location, post_of_another_author
     ):
         response = self.profile_tester.user_client_testget()
         try:
@@ -400,18 +379,14 @@ class TestContent:
             pass
         else:
             context_posts = response.context.get(items_key)
-            assert (
-                    len(context_posts) == 1
-            ), ("Убедитесь, что на странице пользователя "
-                "не отображаются публикации других авторов.")
+            assert len(context_posts) == 1, (
+                "Убедитесь, что на странице пользователя "
+                "не отображаются публикации других авторов."
+            )
 
-    def test_unpublished_category(
-        self, user_client, posts_with_unpublished_category
-    ):
+    def test_unpublished_category(self, user_client, posts_with_unpublished_category):
         profile_response = self.profile_tester.user_client_testget()
-        context_posts = profile_response.context.get(
-            self.profile_tester.items_key
-        )
+        context_posts = profile_response.context.get(self.profile_tester.items_key)
         expected_n = self.profile_tester.n_or_page_size(
             len(posts_with_unpublished_category)
         )
@@ -439,9 +414,7 @@ class TestContent:
 
     def test_future_posts(self, user_client, future_posts):
         profile_response = self.profile_tester.user_client_testget()
-        context_posts = profile_response.context.get(
-            self.profile_tester.items_key
-        )
+        context_posts = profile_response.context.get(self.profile_tester.items_key)
         expected_n = self.profile_tester.n_or_page_size(len(future_posts))
         assert len(context_posts) == expected_n, (
             "Убедитесь, что на странице пользователя автор может видеть свои"
@@ -455,10 +428,10 @@ class TestContent:
             pass
         else:
             context_posts = response.context.get(items_key)
-            assert (
-                len(context_posts) == 0
-            ), ("Убедитесь, что на главной странице "
-                "не отображаются отложенные публикации.")
+            assert len(context_posts) == 0, (
+                "Убедитесь, что на главной странице "
+                "не отображаются отложенные публикации."
+            )
 
         response = self.category_tester.user_client_testget()
         try:
@@ -467,14 +440,12 @@ class TestContent:
             pass
         else:
             context_posts = response.context.get(items_key)
-            assert (
-                len(context_posts) == 0
-            ), ("Убедитесь, что на странице категории "
-                "не отображаются отложенные публикации.")
+            assert len(context_posts) == 0, (
+                "Убедитесь, что на странице категории "
+                "не отображаются отложенные публикации."
+            )
 
-    def test_pagination(
-        self, user_client, many_posts_with_published_locations
-    ):
+    def test_pagination(self, user_client, many_posts_with_published_locations):
         posts = many_posts_with_published_locations
 
         assert len(posts) > self.profile_tester.n_per_page
@@ -495,10 +466,7 @@ class TestContent:
                     " профиля автора отсортированными по времени их"
                     " публикации, «от новых к старым»."
                 ),
-                (
-                    "Убедитесь, что на странице профиля автора работает"
-                    " пагинация."
-                ),
+                ("Убедитесь, что на странице профиля автора работает" " пагинация."),
             ),
             (
                 self.profile_tester,

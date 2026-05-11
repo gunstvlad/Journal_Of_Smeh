@@ -32,9 +32,7 @@ def _test_edit(
 
     def create_updated_form(**updated_props):
         response = user_client.get(edit_url)
-        _, form = _testget_context_item_by_class(
-            response.context, BaseForm, ""
-        )
+        _, form = _testget_context_item_by_class(response.context, BaseForm, "")
         return EditFormTester.init_create_form_from_item(
             item,
             form.__class__,
